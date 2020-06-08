@@ -296,7 +296,9 @@ set matchpairs+==:;
 "-----------------------------------------------------------------------------
 "from .vim/bundel/auto-pairs
 "add <>
-au FileType * let b:AutoPairs = AutoPairsDefine({'<' : '>'})
+if v:version < 800
+  au FileType * let b:AutoPairs = AutoPairsDefine({'<' : '>'})
+endif
 
 " Search
 set hlsearch           " highlighting search pattern
