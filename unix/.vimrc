@@ -15,9 +15,7 @@
 if v:version >= 800
   " optional packages
   packadd! matchit
-else
-  " load all packages from bundle
-  execute pathogen#infect()
+  packadd! editexisting
 endif
 
 syntax on
@@ -76,7 +74,7 @@ if has("unix")
   let uu=1
   :hi link helpbar Identifier
 else
-  "source $VIMRUNTIME/vimrc_example.im
+  "source $VIMRUNTIME/vimrc_example.vim
   "
   " WindowsKey <C-C>, <C-V> ... copy, paste !! visual-mode <C-V> !!
   "source $VIMRUNTIME/mswin.vim
@@ -84,8 +82,10 @@ else
 endif
 
 if has("statusline")
+" NO Fugitive
 "  set statusline=%<%f\ %h%m%r%=%{\"[\".(&fenc==\"\"?&enc:&fenc).((exists(\"+bomb\")\ &&\ &bomb)?\",B\":\"\").\"]\ \"}%k\ %-14.(%l,%c%V%)\ %P
-  set statusline=%<%f\ %h%m%r%{FugitiveStatusline()}%=%-14.(%l,%c%V%)\ %P
+"    Fugitive
+   set statusline=%<%f\ %h%m%r%{FugitiveStatusline()}%=%-14.(%l,%c%V%)\ %P
 endif
 
 let g:syntastic_always_populate_loc_list = 1
@@ -134,6 +134,7 @@ if has("unix")
   syntax enable
   set backupdir=~/tmp,~/,.
   set directory=~/tmp,~/,.
+  set undodir=~/tmp,~/,.
 else
   set guifont=Lucida_Console:h8
   if &diff
@@ -145,6 +146,7 @@ else
   syntax enable
   set backupdir=C:\tmp
   set directory=C:\tmp
+  set undodir=C:\tmp
 endif
 
 "--------------------------------------------------------------------------------
@@ -335,6 +337,8 @@ set tabpagemax=9999    " open maximal Tabs
 
 set scrolloff=4        " top/bottom no scroll with cursor
 
+set undofile           " save undo into file
+
 
 set listchars=eol:¬,tab:»·,trail:·
 "set listchars=eol:Â¤,tab:»·,trail:·
@@ -414,7 +418,7 @@ map ,, :Vexplore<cr>
 
 let g:netrw_banner = 0       " (1/0) enable/disable QuickHelp-Banner
 let g:netrw_liststyle = 3    " tree style
-let g:netrw_winsize = 20     " % für netrw
+let g:netrw_winsize = 20     " % fuer netrw
 let g:netrw_browse_split = 3 " browsing <cr> file in Tab
 let g:netrw_altv = 1         " browsing 'v'  file in split window rechts
 
@@ -604,7 +608,7 @@ tmenu ToolBar.BuiltIn12 MAKE (link)
 endif
 
 "--------------------------------------------------------------------------------
-" Markierten Bereich ein/ausrücken
+" Markierten Bereich ein/ausruecken
 "map ]   :'a,'bs/^/  /<cr>
 "map [   :'a,'bs/^  //<cr>
 
@@ -620,6 +624,9 @@ nnoremap <silent># #zz
 nnoremap <silent>g* g*zz
 
 "nnoremap <silent>G Gzz
+
+"nnoremap <silent>{ {zz
+"nnoremap <silent>} }zz
 
 "--------------------------------------------------------------------------------
 " Turn off highlighting and clear message
@@ -818,6 +825,11 @@ imap <TAB> <C-P>
 " <BS>  is the same as "h" <LEFT> and "x" (delete)
 nmap <BS> hx
 
+set complete-=i     " Searching includes can be slow
+
+set omnifunc=syntaxcomplete#Complete
+set completefunc=syntaxcomplete#Complete
+
 "--------------------------------------------------------------------------------
 " source/edit vimrc
 if has("unix")
@@ -852,9 +864,9 @@ nnoremap ^ 0
 "map <ScrollWheelDown> <C-D>
 
 "--------------------------------------------------------------------------------
-" Copy/Paste
-
+" copy visual select in Reg-primary (*) and Reg-clipboard (+)
 vnoremap <C-c> "*y :let @+=@*<CR>
+
 
 nmap <C-p> "*P
 

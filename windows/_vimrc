@@ -2,10 +2,14 @@
 "         File: _vimrc
 "   Maintainer: Klaus Rothemund (klaus.rothemund@klaro-informatik.de)
 "          URL: http://klaro-informatik.de
-"  Last Change: 21.02.2019
-"      Version: 0.2
-"      Comment: include version >= 800
+"  Last Change: 19.02.2020
+"      Version: 0.5
+"      Comment:
+"      Comment: menu fron cc to git
+"      Comment: include pathogen
 "      Comment: source vdb.vimrc
+"      Comment: include version >= 800
+"      Comment: C-RightMouse
 " "-------------------------------------------------------------------------------
 
 if v:version >= 800
@@ -13,6 +17,8 @@ if v:version >= 800
   packadd! matchit
   packadd! editexisting
 endif
+
+syntax on
 
 " Use Vim settings, rather than Vi settings (much better!).
 set nocompatible
@@ -24,7 +30,8 @@ set nocompatible
 filetype plugin indent on
 
 
-"set encoding=UTF-8
+noremap ee :set encoding=UTF-8<CR>
+noremap tt :set encoding=latin1<CR>
 " :dig -> show all char <= 255
 
 " Suchpath find
@@ -46,10 +53,11 @@ set path+=**
 if &diff
   set columns=180 lines=53
 else
-  set columns=165 lines=53
+  "get from $COLUMNS and $LINES environment variables
+  set columns=162 lines=55
 endif
 "
-"map <C-r> :win 160 50<Bar>:winpos 50 50<cr>
+"map <C-R> :win 160 50<Bar>:winpos 50 50<cr>
 
 let s:myscrolloff = 2
 "
@@ -68,14 +76,30 @@ if has("unix")
 else
   "source $VIMRUNTIME/vimrc_example.vim
   "
-  " WindowsKey <C-c>, <C-v> ... copy, paste !! visual-mode <C-v> !!
+  " WindowsKey <C-C>, <C-V> ... copy, paste !! visual-mode <C-V> !!
   "source $VIMRUNTIME/mswin.vim
   "behave mswin
 endif
 
 if has("statusline")
- set statusline=%<%f\ %h%m%r%=%{\"[\".(&fenc==\"\"?&enc:&fenc).((exists(\"+bomb\")\ &&\ &bomb)?\",B\":\"\").\"]\ \"}%k\ %-14.(%l,%c%V%)\ %P
+" NO Fugitive
+  set statusline=%<%f\ %h%m%r%=%{\"[\".(&fenc==\"\"?&enc:&fenc).((exists(\"+bomb\")\ &&\ &bomb)?\",B\":\"\").\"]\ \"}%k\ %-14.(%l,%c%V%)\ %P
+"    Fugitive
+" set statusline=%<%f\ %h%m%r%{FugitiveStatusline()}%=%-14.(%l,%c%V%)\ %P
 endif
+
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+"let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
+
+let ipath01 = $VWS_PROJEKT_HOME.'/inc/vws'
+let ipath02 = $VWS_PROJEKT_HOME.'/damodgen/generat/inc/damod'
+let ipath03 = $VWS_PROJEKT_HOME.'/src/dialog/bks/include/standard.h'
+
+"echo 'ipath01 = '.ipath01
+"echo 'ipath02 = '.ipath02
+let g:syntastic_c_include_dirs = [ ipath01, ipath02 ]
 
 "--------------------------------------------------------------------------------
 " Comment/Uncomment  uses ~/.vim/plugin/vcomments.vim
@@ -98,7 +122,7 @@ if has("unix")
   if $HOST == "hx34"
     set guifont=LucidaTypewriter\ Medium\ 9
   else " Linux
-    set guifont=WenQuanYi\ Micro\ Hei\ Mono\ 9
+    set guifont=WenQuanYi\ Micro\ Hei\ Mono\ 8
   endif
 
   if &diff
@@ -160,25 +184,25 @@ endif
 
 "-------------------------------------------------------------------------------
 " open file readonly if SwapExists (gvim -R)
-augroup AutoSwap
-    autocmd!
-    autocmd SwapExists *  call AS_HandleSwapfile(expand('<afile>:p'))
-augroup END
-
-function! AS_HandleSwapfile (filename)
-
-  echohl ErrorMsg
-  echo 'Duplicate edit-session '.a:filename.' (readonly) '
-  echohl None
-  sleep 2
-  let v:swapchoice = 'o'
-
-endfunction
+"augroup AutoSwap
+"    autocmd!
+"    autocmd SwapExists *  call AS_HandleSwapfile(expand('<afile>:p'))
+"augroup END
+"
+"function! AS_HandleSwapfile (filename)
+"
+"  echohl ErrorMsg
+"  echo 'Duplicate edit-session '.a:filename.' (readonly) '
+"  echohl None
+"  sleep 2
+"  let v:swapchoice = 'o'
+"
+"endfunction
 
 "--------------------------------------------------------------------------------
 " Goto last location when reopen file
 if v:version < 800
-
+ if !&diff
   augroup lineReturn
     autocmd!
     autocmd BufWinEnter * call Reset_Cursor()
@@ -204,7 +228,7 @@ if v:version < 800
       endif
     endfunction
   endif
-
+ endif
 else " >= 800
 
   augroup vimStartup
@@ -269,6 +293,11 @@ set ruler           " show cursor position
 set matchpairs+=<:>
 set matchpairs+==:;
 
+"-----------------------------------------------------------------------------
+"from .vim/bundel/auto-pairs
+"add <>
+au FileType * let b:AutoPairs = AutoPairsDefine({'<' : '>'})
+
 " Search
 set hlsearch           " highlighting search pattern
 set incsearch          " Lookahead while typing
@@ -318,9 +347,18 @@ set listchars=eol:¬,tab:»·,trail:·
 "file changed outside of Vim but not in Vim, read it again.
 set autoread
 
+"diff-windos splits vertical e.g. fugitive
+set diffopt+=vertical
+
 "-------------------------------------------------------------------------------
 " toggel ignore whitspace-diff
 if &diff
+     augroup AutoSwap
+         autocmd!
+         autocmd SwapExists * let v:swapchoice = 'o'
+     augroup END
+     normal! gg
+     set wrap
      map ww :call IwhiteToggle()<CR>
      function! IwhiteToggle()
        if &diffopt =~ 'iwhite'
@@ -329,7 +367,10 @@ if &diff
          set diffopt+=iwhite
        endif
      endfunction
- endif
+     nmap <C-right> ]c
+     nmap <C-left>  [c
+     set scrollbind
+endif
 
 "--------------------------------------------------------------------------------
 " taglist
@@ -355,6 +396,8 @@ endif
 
 set showfulltag
 
+noremap <C-RightMouse> <C-t>
+
 "-------------------------------------------------------------------------------
 "cscope
 if has("unix")
@@ -375,7 +418,7 @@ map ,, :Vexplore<cr>
 
 let g:netrw_banner = 0       " (1/0) enable/disable QuickHelp-Banner
 let g:netrw_liststyle = 3    " tree style
-let g:netrw_winsize = 20     " % für netrw
+let g:netrw_winsize = 20     " % fuer netrw
 let g:netrw_browse_split = 3 " browsing <cr> file in Tab
 let g:netrw_altv = 1         " browsing 'v'  file in split window rechts
 
@@ -399,7 +442,7 @@ map <F2> :WMToggle<cr>
 " F3: "show" -> use and define of c-funktions in a subwindow -> position cursor -> F4 -> open file
 " from ~/home/bin/show
 "map <F3> :!show_ref <cword><CR>
-map <F3> :execute "!show <cword> > /tmp/show_ref_$LOGNAME" <Bar> let my_cword=expand("<cword>") <Bar> :e /tmp/show_ref_$LOGNAME<CR><cr>
+map <F3> :execute "!show <cword> > /tmp/show_ref_$LOGNAME" <Bar> :execute "!~/bin/sort_ref /tmp/show_ref_$LOGNAME" <Bar> let my_cword=expand("<cword>") <Bar> :e /tmp/show_ref_$LOGNAME<CR><cr>
 
 " F4: Edit file whose name is under the cursor
 "map <F4> gf
@@ -477,23 +520,23 @@ match Todo /TODO\|NOTE/
 
 "--------------------------------------------------------------------------------
 " change font size in GUI
-command! Bigger  :let &guifont = substitute(&guifont, '\d\+$', '\=submatch(0)+1', '')
-command! Smaller :let &guifont = substitute(&guifont, '\d\+$', '\=submatch(0)-1', '')
+command! BiggerFont  :let &guifont = substitute(&guifont, '\d\+$', '\=submatch(0)+1', '')
+command! SmallerFont :let &guifont = substitute(&guifont, '\d\+$', '\=submatch(0)-1', '')
 
-nmap <S-F1> <ESC>:Bigger<CR>
-imap <S-F1> <ESC>:Bigger<CR>
-nmap <S-F2> <ESC>:Smaller<CR>
-imap <S-F2> <ESC>:Smaller<CR>
+nmap <S-F1> <ESC>:BiggerFont<CR>
+imap <S-F1> <ESC>:BiggerFont<CR>
+nmap <S-F2> <ESC>:SmallerFont<CR>
+imap <S-F2> <ESC>:SmallerFont<CR>
 
 "--------------------------------------------------------------------------------
 " tabstop *2, /2
-command! More :let &tabstop = substitute(&tabstop, '\d\+$', '\=submatch(0)*2', '')
-command! Less :let &tabstop = substitute(&tabstop, '\d\+$', '\=submatch(0)/2', '')
+command! MoreTabStop :let &tabstop = substitute(&tabstop, '\d\+$', '\=submatch(0)*2', '')
+command! LessTabStop :let &tabstop = substitute(&tabstop, '\d\+$', '\=submatch(0)/2', '')
 
-nmap ,+ <ESC>:More<CR>
-imap ,+ <ESC>:More<CR>
-nmap ,- <ESC>:Less<CR>
-imap ,- <ESC>:Less<CR>
+nmap ,+ <ESC>:MoreTabStop<CR>
+imap ,+ <ESC>:MoreTabStop<CR>
+nmap ,- <ESC>:LessTabStop<CR>
+imap ,- <ESC>:LessTabStop<CR>
 
 "--------------------------------------------------------------------------------
 " Convenient command to see the difference between the current buffer and the
@@ -509,31 +552,37 @@ endif
 
 if !exists("$VDB")
 "--------------------------------------------------------------------------------
-" Dreckstool
+" Dreckstool: git
 amenu ToolBar.-Sep1- :
-"amenu ToolBar.BuiltIn20 :!/usr/atria/bin/cleartool ann -nco %:p; dos2ux.sh %:p.ann<CR> :e %:p.ann<CR>
-amenu ToolBar.BuiltIn20 :!~/bin/ct_cmd ann %:p; dos2ux.sh %:p.ann<CR> :e %:p.ann<CR>
-tmenu ToolBar.BuiltIn20 ct ann -nco .
+"--------------------------------------------------------------------------------
+"amenu ToolBar.BuiltIn27 :!git blame %:. > ~/tmp/%:..blame<CR> :e ~/tmp/%:..blame<CR>
+amenu ToolBar.BuiltIn27 :Gblame<CR>
+tmenu ToolBar.BuiltIn27 git blame .
 
-"amenu ToolBar.BuiltIn28 :!/usr/atria/bin/cleartool diff -g -pred  %:p &<CR>
-amenu ToolBar.BuiltIn28 :!~/bin/ct_cmd diff %:p &<CR>
-tmenu ToolBar.BuiltIn28 ct diff -pred .
+"1
+"amenu ToolBar.BuiltIn28 :!git difftool %:p <CR>
+amenu ToolBar.BuiltIn28 :!git difftool --cached %:p <CR>
+tmenu ToolBar.BuiltIn28 git diff repo staged
 
-"amenu ToolBar.BuiltIn29 :!/usr/atria/bin/cleartool lsvtree -g %:p &<CR>
-amenu ToolBar.BuiltIn29 :!~/bin/ct_cmd lsvtree %:p &<CR>
-tmenu ToolBar.BuiltIn29 ct lsvtree .
+"2
+"amenu ToolBar.BuiltIn29 :!~/bin/git_cmd diff %:p &<CR>
+amenu ToolBar.BuiltIn29 :!git difftool %:p <CR>
+tmenu ToolBar.BuiltIn29 git diff staged work
 
-"amenu ToolBar.BuiltIn01 :!/usr/atria/bin/cleartool co -nc %:p<CR>
-amenu ToolBar.BuiltIn01 :!~/bin/ct_cmd cco %:p<CR>
-tmenu ToolBar.BuiltIn01 ct cco .
+"3
+"amenu ToolBar.BuiltIn20 :!git difftool %:p <CR>
+amenu ToolBar.BuiltIn20 :!git difftool HEAD %:p <CR>
+tmenu ToolBar.BuiltIn20 git diff repo work
 
-"amenu ToolBar.BuiltIn31 :!/usr/atria/bin/cleartool unco -keep %:p<CR>
-amenu ToolBar.BuiltIn31 :!~/bin/ct_cmd unco %:p<CR>
-tmenu ToolBar.BuiltIn31 ct unco .
+"4
+amenu ToolBar.BuiltIn18 :!~/bin/gitdifflast %:p &<CR>
+tmenu ToolBar.BuiltIn18 git diff repo HEAD-1
 
-amenu ToolBar.BuiltIn10 :!Mylocks<CR>
+"amenu ToolBar.BuiltIn10 :!Mylocks<CR>
 "amenu ToolBar.BuiltIn10 :!~/bin/ct_cmd mylocks %:p<CR>
-tmenu ToolBar.BuiltIn10 ct mylocks .
+"amenu ToolBar.BuiltIn10 :!git status<CR>
+amenu ToolBar.BuiltIn10 :Gstatus<CR>
+tmenu ToolBar.BuiltIn10 git stauts .
 
 " quickfix
 amenu ToolBar.-Sep2- :
@@ -559,7 +608,7 @@ tmenu ToolBar.BuiltIn12 MAKE (link)
 endif
 
 "--------------------------------------------------------------------------------
-" Markierten Bereich ein/ausrücken
+" Markierten Bereich ein/ausruecken
 "map ]   :'a,'bs/^/  /<cr>
 "map [   :'a,'bs/^  //<cr>
 
@@ -586,9 +635,11 @@ nnoremap <silent> <Space> :nohlsearch<Bar>:echo<CR>
 "-------------------------------------------------------------------------------
 " write/read to/from tmp-dir (share tmp-file)
 if has("unix")
+  map >>  :1,$ w!/tmp/xx_$LOGNAME
   map >   :'a,'b w!/tmp/xx_$LOGNAME
   map <   :r/tmp/xx_$LOGNAME
 else
+  map >>  :1,$ w! c:\tmp\xx
   map >   :'a,'b w! c:\tmp\xx
   map <   :r c:\tmp\xx
 endif
@@ -601,9 +652,8 @@ map (   ?\/\*<cr>
 map M   :'a,'b m.<cr>
 map T   :'a,'b t.<cr>
 map U   :'a,'b d<cr>
-map <tab>     :next<cr>
-map <s-tab>   :previous<cr>
-
+map <tab>    :next<cr>
+map <S-tab>  :previous<cr>
 
 "-------------------------------------------------------------------------------
 " easy substitute (last match in REG=/)
@@ -792,10 +842,10 @@ endif
 
 "--------------------------------------------------------------------------------
 " Move cursor to Window
-noremap <s-down>  <C-W>w
-noremap <s-up>    <C-W>W
-noremap <s-left>  <C-W>h
-noremap <s-right> <C-W>l
+noremap <S-down>  <C-W>w
+noremap <S-up>    <C-W>W
+noremap <S-left>  <C-W>h
+noremap <S-right> <C-W>l
 
 " Differs from 'j' when lines wrap,
 nnoremap j gj
@@ -817,28 +867,8 @@ nnoremap ^ 0
 " copy visual select in Reg-primary (*) and Reg-clipboard (+)
 vnoremap <C-c> "*y :let @+=@*<CR>
 
-"--------------------------------------------------------------------------------
-" paste from Reg-primay (*) at current location
-nmap  <C-p> "*P
 
-"" When in Normal mode, paste over the current line...
-"nmap  <C-P> 0d$"*p
-"
-"" When in Visual mode, paste over the selected region...
-"xmap  <C-P> "*pgv
-"
-"" In Normal mode, yank the entire buffer...
-"nmap <C-C> 1G"*yG``:call YankedToClipboard()<CR>
-"
-"" In Visual mode, yank the selection...
-"xmap  <C-C> "*y:call YankedToClipboard()<CR>
-"
-"function! YankedToClipboard ()
-"    let block_of = (visualmode() == "\<C-V>" ? 'block of ' : '')
-"    let N = strlen(substitute(@*, '[^\n]\|\n$', '', 'g')) + 1
-"    let lines = (N == 1 ? 'line' : 'lines')
-"    echo block_of . N lines 'yanked to clipboard'
-"endfunction
+nmap <C-p> "*P
 
 "--------------------------------------------------------------------------------
 " Drag visual Blocks uses plugin/dragvisuals.vim
@@ -851,35 +881,40 @@ vmap  <expr>  <DOWN>   DVB_Drag('down')
 vmap  <expr>  <UP>     DVB_Drag('up')
 vmap  <expr>  D        DVB_Duplicate()
 
+"--------------------------------------------------------------------------------
+" change word to UPPERCASE, lowercase
+
+nmap ,U gUiW
+nmap ,u guiW
+
+"--------------------------------------------------------------------------------
+" wg. mapping von []
+nmap Ã¶ [
+nmap Ã¤ ]
 
 "--------------------------------------------------------------------------------
 " Remark
-"INSERT-Mode
-"<C-k> plus 2digits : insert special char, e.g. <C-k>e' -> é,  see :digraphs
-"<C-v> u plus 4hex  : insert utf-8 Char, e.g. <C-v> u 00a9 -> ©, a COPYRIGHT SIGN
-"<C-v><CR>          : insert ^M,
-"<C-v><TAB>         : insert ^I,
-"
-"
-"NORMAL-Mode
-"<C-r>            : redo
-"<C-n>            : auto-completion Next
-"<C-p>            : auto-completion Prev
+"<C-R>            : redo
+"<C-N>            : auto-completion Next
+"<C-P>            : auto-completion Prev
 "<C-x><C-]>       : auto-completion Tag-File
-"<C-x><C-f>       : auto-completion filename
-"<C-x><C-l>       : auto-completion Line
-"<C-x><C-o>       : auto-completion Omni (filetype)
+"<C-x><C-F>       : auto-completion filename
+"<C-x><C-L>       : auto-completion Line
+"<C-x><C-O>       : auto-completion Omni (filetype)
 ":ls              : open buffer-list
 ":%s/\%Vxxx/yyy/  : substitut in Visual-Area
 "
 "<C-f>            : open cmdline-, search-historyWindow
 "q:               : show command-History
 "q/               : show search-History
+"<C-LeftMouse>    : <C-]> : Jump to tag : Xconfig no XKEYBOARD
+"<C-RightMouse>   : <C-t> : Jump back to tag : Xconfig no XKEYBOARD
+"<S-LeftMouse>    : *     : search word : Xconfig no XKEYBOARD
 
 "-------------------------------------------------------------------------------
 :ab KLARO Klaus Rothemund
-:ab _date <C-r>=strftime("%d.%m.%Y")<CR>
-:ab _time <C-r>=strftime("%H:%M")<CR>
+:ab _date <C-R>=strftime("%d.%m.%Y")<CR>
+:ab _time <C-R>=strftime("%H:%M")<CR>
 
 ab _sh    #!/bin/sh<CR>
 ab _ksh   #!/bin/ksh<CR>
