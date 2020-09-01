@@ -426,7 +426,7 @@ map ,, :Vexplore<cr>
 let g:netrw_banner = 0       " (1/0) enable/disable QuickHelp-Banner
 let g:netrw_liststyle = 3    " tree style
 let g:netrw_winsize = 20     " % fuer netrw
-let g:netrw_browse_split = 3 " browsing <cr> file in Tab
+"let g:netrw_browse_split = 3 " browsing <cr> file in Tab
 let g:netrw_altv = 1         " browsing 'v'  file in split window rechts
 
 augroup ProjectDrawer
