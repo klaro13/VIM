@@ -16,6 +16,9 @@ if v:version >= 800
   " optional packages
   packadd! matchit
   packadd! editexisting
+else
+  " load all packages from bundle
+  execute pathogen#infect()
 endif
 
 syntax on
@@ -499,6 +502,8 @@ map ,f :set scrolloff=2<CR>
 " c-comment "/* ... */" actual line
 map ,* :let _s=@/<Bar>.s/\(.*\)/\/* \1 *\//<Bar>let @/=_s<CR>
 
+" list of all git-commits
+map ,h :execute "!git adog % > /tmp/git_hist_%" <Bar> cgetfile /tmp/git_hist_% <Bar> copen<CR><CR>
 
 endif
 
@@ -848,6 +853,8 @@ noremap <S-down>  <C-W>w
 noremap <S-up>    <C-W>W
 noremap <S-left>  <C-W>h
 noremap <S-right> <C-W>l
+noremap <C-up> <C-W>+
+noremap <C-down> <C-W>-
 
 " Differs from 'j' when lines wrap,
 nnoremap j gj
