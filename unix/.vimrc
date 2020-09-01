@@ -344,6 +344,8 @@ set scrolloff=4        " top/bottom no scroll with cursor
 
 set undofile           " save undo into file
 
+"set colorcolumn=80
+"hi ColorColumn ctermbg=lightgrey guibg=lightgrey
 
 set listchars=eol:¬,tab:»·,trail:·
 "set listchars=eol:Â¤,tab:»·,trail:·
@@ -889,6 +891,9 @@ vmap  <expr>  <RIGHT>  DVB_Drag('right')
 vmap  <expr>  <DOWN>   DVB_Drag('down')
 vmap  <expr>  <UP>     DVB_Drag('up')
 vmap  <expr>  D        DVB_Duplicate()
+
+vnoremap J :m '>+1<CR>gv=gv
+vnoremap K :m '<-2<CR>gv=gv
 
 "--------------------------------------------------------------------------------
 " change word to UPPERCASE, lowercase
