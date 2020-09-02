@@ -91,6 +91,8 @@ if has("statusline")
    set statusline=%<%f\ %h%m%r%{FugitiveStatusline()}%=%-14.(%l,%c%V%)\ %P
 endif
 
+"--------------------------------------------------------------------------------
+" Syntastic uses .vim/bundle/syntastic-master
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
 "let g:syntastic_check_on_open = 1
@@ -98,11 +100,15 @@ let g:syntastic_check_on_wq = 0
 
 let ipath01 = $VWS_PROJEKT_HOME.'/inc/vws'
 let ipath02 = $VWS_PROJEKT_HOME.'/damodgen/generat/inc/damod'
-let ipath03 = $VWS_PROJEKT_HOME.'/src/dialog/bks/include/standard.h'
+let ipath03 = $VWS_PROJEKT_HOME.'/src/dialog/bks/include'
+let ipath04 = $VWS_PROJEKT_HOME.'/src/dialog/bks/unix/include'
 
 "echo 'ipath01 = '.ipath01
 "echo 'ipath02 = '.ipath02
-let g:syntastic_c_include_dirs = [ ipath01, ipath02 ]
+let g:syntastic_c_include_dirs = [ ipath01, ipath02, ipath03, ipath04 ]
+
+let DAMOD_DEFS="-DORACLE -DADM -DALLBE -DBRIEF -DEURO -DMASK -DMASKSTMUT -DMASKSTRUK -DMEHRSPR -DMELD -DMETA -DMIGRATION -DMUTATION -DMUTATITEC -DPARTNER -DPARTNERTEC -DPDMTEC -DPDMVWSICHT -DRES -DSCHNITTST -DSELEK -DSTATUS -DVDM -DVWSTEC"
+let g:syntastic_c_compiler_options = "-std=gnu99 -D_XOPEN_SOURCE=700 -DBASISLIB_NEU -DMHILFE" . " " . DAMOD_DEFS
 
 "--------------------------------------------------------------------------------
 " Comment/Uncomment  uses ~/.vim/plugin/vcomments.vim
@@ -347,9 +353,9 @@ set undofile           " save undo into file
 "set colorcolumn=80
 "hi ColorColumn ctermbg=lightgrey guibg=lightgrey
 
-set listchars=eol:Â¬,tab:Â»Â·,trail:Â·
-"set listchars=eol:Ã‚Â¤,tab:Â»Â·,trail:Â·
-"set listchars=eol:Ã‚Â¹,tab:Â»Â·,trail:Â·
+set listchars=eol:¬,tab:»·,trail:·
+"set listchars=eol:Â¤,tab:»·,trail:·
+"set listchars=eol:Â¹,tab:»·,trail:·
 
 "file changed outside of Vim but not in Vim, read it again.
 set autoread
@@ -532,10 +538,14 @@ match Todo /TODO\|NOTE/
 command! BiggerFont  :let &guifont = substitute(&guifont, '\d\+$', '\=submatch(0)+1', '')
 command! SmallerFont :let &guifont = substitute(&guifont, '\d\+$', '\=submatch(0)-1', '')
 
-nmap <S-F1> <ESC>:BiggerFont<CR>
-imap <S-F1> <ESC>:BiggerFont<CR>
-nmap <S-F2> <ESC>:SmallerFont<CR>
-imap <S-F2> <ESC>:SmallerFont<CR>
+nmap <C-ScrollWheelUp> <ESC>:BiggerFont<CR>
+imap <C-ScrollWheelUp> <ESC>:BiggerFont<CR>
+nmap <C-ScrollWheelDown> <ESC>:SmallerFont<CR>
+imap <C-ScrollWheelDown> <ESC>:SmallerFont<CR>
+"nmap <S-F1> <ESC>:BiggerFont<CR>
+"imap <S-F1> <ESC>:BiggerFont<CR>
+"nmap <S-F2> <ESC>:SmallerFont<CR>
+"imap <S-F2> <ESC>:SmallerFont<CR>
 
 "--------------------------------------------------------------------------------
 " tabstop *2, /2
@@ -903,8 +913,8 @@ nmap ,u guiW
 
 "--------------------------------------------------------------------------------
 " wg. mapping von []
-nmap Ã¶ [
-nmap Ã¤ ]
+nmap ö [
+nmap ä ]
 
 "--------------------------------------------------------------------------------
 " Remark
