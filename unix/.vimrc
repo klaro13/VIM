@@ -97,6 +97,10 @@ let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
 "let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
+let g:syntastic_c_check_header = 1
+let g:syntastic_cpp_check_header = 1
+let g:syntastic_c_no_include_search =1
+let g:syntastic_enable_balloons = 1
 
 let ipath01 = $VWS_PROJEKT_HOME.'/inc/vws'
 let ipath02 = $VWS_PROJEKT_HOME.'/damodgen/generat/inc/damod'
@@ -215,6 +219,7 @@ if v:version < 800
   augroup lineReturn
     autocmd!
     autocmd BufWinEnter * call Reset_Cursor()
+    "autocmd BufWinEnter * :lcd %:h
   augroup END
 
   if v:version <= 702
@@ -284,6 +289,83 @@ autocmd BufWritePre * :call <SID>RemoveTrailingWhitespaces()
 "autocmd BufWritePre * :%s/\s\+$//e
 
 "--------------------------------------------------------------------------------
+" Remove unused #includes
+"
+function! TryThisInclude()
+  let _s=@/
+  let r=0
+  execute 's/^/\/\//'
+  execute 'w'
+  let loc_list = getloclist(0)
+  if !empty(loc_list)
+    execute 'undo'
+    execute 'w'
+  else
+    let r=1
+  endif
+  let @/=_s
+  return r
+endfunction
+
+function! CheckAllInclude()
+  let l = line(".")
+  let c = col(".")
+  let z = 0
+  let t = 0
+  let a = 0
+  execute ':0'
+  let last = 0
+  while 1>0
+    let line = search('^#include')
+    if line > last
+      let last = line
+      let z = z+1
+      let t = TryThisInclude()
+      let a = a+t
+    else
+      break
+    endif
+  endwhile
+  call cursor(l,c)
+  echo "DONE CheckAllInclude: " . a . "/". z . " removed"
+endfunction
+
+nnoremap ,CI :call CheckAllInclude()<cr>
+nnoremap ,TI :call TryThisInclude()<cr>
+nnoremap ,DI :g/\/\/#include/d<cr>
+
+"augroup vimExit
+"  autocmd!
+"  autocmd BufWritePre *.c :call <SID>CheckAllInclude()
+"augroup END
+"
+"--------------------------------------------------------------------------------
+" vdb TODO
+if !exists("$VDB")
+  function! MyBalloonExpr()
+	return 'Cursor is at line ' . v:beval_lnum .
+		\', column ' . v:beval_col .
+		\ ' of file ' .  bufname(v:beval_bufnr) .
+		\ ' on word "' . v:beval_text . '"'
+  endfunction
+else
+  let g:ConqueTerm_ReadUnfocused = 1
+
+"---------------------------------------------------------------------------------
+" new function in .vim/autoload/conque_gdb.vim:
+" conque_gdb#print_var(cmd)
+"---------------------------------------------------------------------------------
+  function! MyBalloonExpr()
+    :call conque_gdb#print_var('print ' . v:beval_text)
+    return "siehe unten GDB-Terminal"
+    "return v:beval_text . ' = ' . conque_gdb#print_var('print ' . v:beval_text)
+  endfunction
+endif
+
+set bexpr=MyBalloonExpr()
+set ballooneval
+
+"--------------------------------------------------------------------------------
 " call ctags Each Time a File is Saved
 "autocmd BufWritePost * call system("ctags -R")
 "SL
@@ -306,7 +388,7 @@ set matchpairs+==:;
 "from .vim/bundel/auto-pairs
 "add <>
 if v:version < 800
-  au FileType * let b:AutoPairs = AutoPairsDefine({'<' : '>'})
+  "au FileType * let b:AutoPairs = AutoPairsDefine({'<' : '>'})
 endif
 
 " Search
@@ -432,7 +514,7 @@ map ,, :Vexplore<cr>
 let g:netrw_banner = 0       " (1/0) enable/disable QuickHelp-Banner
 let g:netrw_liststyle = 3    " tree style
 let g:netrw_winsize = 20     " % fuer netrw
-let g:netrw_browse_split = 3 " browsing <cr> file in Tab
+"let g:netrw_browse_split = 3 " browsing <cr> file in Tab
 let g:netrw_altv = 1         " browsing 'v'  file in split window rechts
 
 augroup ProjectDrawer
@@ -477,10 +559,12 @@ map <F8> :set rnu!<Bar>set rnu?<CR>
 map <F9> :set wrap!<Bar>set nowrap?<CR>
 
 " F10: quit file without saveing
-map <F10> :q<cr>
+"map <F10> :q<cr>
+map <F10> u:w<cr>
 
 " F11: write file
-map <F11> :w<cr>
+"map <F11> :w<cr>
+map <F11> i//<esc>:w<cr><left><left>
 
 endif
 
@@ -512,6 +596,7 @@ map ,* :let _s=@/<Bar>.s/\(.*\)/\/* \1 *\//<Bar>let @/=_s<CR>
 
 " list of all git-commits
 map ,h :execute "!git adog % > /tmp/git_hist_%" <Bar> cgetfile /tmp/git_hist_% <Bar> copen<CR><CR>
+map ,x :Git log --pretty=format:"%h %an %s" --graph %<CR>
 
 endif
 
@@ -580,22 +665,24 @@ tmenu ToolBar.BuiltIn27 git blame .
 
 "1
 "amenu ToolBar.BuiltIn28 :!git difftool %:p <CR>
-amenu ToolBar.BuiltIn28 :!git difftool --cached %:p <CR>
-tmenu ToolBar.BuiltIn28 git diff repo staged
+"amenu ToolBar.BuiltIn28 :!git difftool --cached %:p <CR>
+"tmenu ToolBar.BuiltIn28 git diff repo staged
 
 "2
-"amenu ToolBar.BuiltIn29 :!~/bin/git_cmd diff %:p &<CR>
-amenu ToolBar.BuiltIn29 :!git difftool %:p <CR>
-tmenu ToolBar.BuiltIn29 git diff staged work
+"amenu ToolBar.BuiltIn18 :!~/bin/git_cmd diff %:p &<CR>
+"amenu ToolBar.BuiltIn18 :!git difftool %:p <CR>
+"tmenu ToolBar.BuiltIn18 git diff staged work
+amenu ToolBar.BuiltIn18 :!gitdiffhist %:p <CR><CR>
+tmenu ToolBar.BuiltIn18 git diff hist
 
 "3
 "amenu ToolBar.BuiltIn20 :!git difftool %:p <CR>
-amenu ToolBar.BuiltIn20 :!git difftool HEAD %:p <CR>
-tmenu ToolBar.BuiltIn20 git diff repo work
+amenu ToolBar.BuiltIn20 :!~/bin/gitdifflast %:p &<CR><CR>
+tmenu ToolBar.BuiltIn20 git diff HEAD-1 repo
 
 "4
-amenu ToolBar.BuiltIn18 :!~/bin/gitdifflast %:p &<CR>
-tmenu ToolBar.BuiltIn18 git diff repo HEAD-1
+amenu ToolBar.BuiltIn29 :!git difftool HEAD %:p &<CR><CR>
+tmenu ToolBar.BuiltIn29 git diff repo work
 
 "amenu ToolBar.BuiltIn10 :!Mylocks<CR>
 "amenu ToolBar.BuiltIn10 :!~/bin/ct_cmd mylocks %:p<CR>
@@ -693,8 +780,9 @@ noremap Q !!$SHELL<cr>
 "noremap Q !!<cWORD><cr>
 
 "-------------------------------------------------------------------------------
-" smokeTest
-nmap ,M :!~/bin/MAKE; mkok MAKE.p<CR>
+" make
+nnoremap ,M  :lcd %:h <bar> :make <bar> redraw!<CR>
+nnoremap ,MM :!~/bin/MAKE; mkok MAKE.p<CR>
 
 "-------------------------------------------------------------------------------
 " cd in file-Dir
